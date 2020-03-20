@@ -3,6 +3,7 @@ package ru.vilture.covid_19
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.doAsync
@@ -10,11 +11,29 @@ import java.io.File
 import java.io.IOException
 import java.net.URL
 
+
 class MainActivity : AppCompatActivity() {
 
     var apiRspCountries = ""
     var apiRspAll = ""
-    val moshi = Moshi.Builder().build()
+
+    data class dataAll(
+        val cases: String,
+        val deaths: String,
+        val recovered: String
+    )
+
+    data class dataCountry(
+        val country: String,
+        val cases: String,
+        val todayCases: String,
+        val deaths: String,
+        val todayDeaths: String,
+        val recovered: String,
+        val active: String,
+        val critical: String,
+        val casesPerOneMillion: String
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,15 +52,32 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(main, "Статистика загружена", Snackbar.LENGTH_SHORT).show()
         }
 
-        // разбивем данные на json объекты
+        // разбивем мировые данные на json объекты
+        val dataAll = parseJsonAll()
 
+        // покажем мировую статистику
+        country.text = "мировая статистика"
+        cases.text = dataAll.cases
+        death.text = dataAll.deaths
+        recover.text = dataAll.recovered
+    }
+
+    private fun parseJsonAll(): dataAll {
+        val moshi = Moshi.Builder().build()
+        val jsonAdapter: JsonAdapter<dataAll> =
+            moshi.adapter<dataAll>(dataAll::class.java)
+
+        val tt: dataAll = jsonAdapter.fromJson(apiRspAll)
+
+        return tt
     }
 
     private fun checkAndSaveData(): Boolean {
         if (isOnline()) {
             // internet available
             doAsync {
-                apiRspCountries = URL("https://coronavirus-19-api.herokuapp.com/countries").readText()
+                apiRspCountries =
+                    URL("https://coronavirus-19-api.herokuapp.com/countries").readText()
                 if (apiRspCountries.isNotEmpty()) {
                     File(this@MainActivity.filesDir, "countries.json").writeText(apiRspCountries)
                 }
