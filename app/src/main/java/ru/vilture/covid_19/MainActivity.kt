@@ -12,7 +12,8 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
-    var apiResponse = ""
+    var apiRspCountries = ""
+    var apiRspAll = ""
     val moshi = Moshi.Builder().build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,16 +41,28 @@ class MainActivity : AppCompatActivity() {
         if (isOnline()) {
             // internet available
             doAsync {
-                apiResponse = URL("https://coronavirus-19-api.herokuapp.com/countries").readText()
-                if (apiResponse.isNotEmpty()) {
-                    File(this@MainActivity.filesDir, "data.json").writeText(apiResponse)
+                apiRspCountries = URL("https://coronavirus-19-api.herokuapp.com/countries").readText()
+                if (apiRspCountries.isNotEmpty()) {
+                    File(this@MainActivity.filesDir, "countries.json").writeText(apiRspCountries)
                 }
+
+                apiRspAll = URL("https://coronavirus-19-api.herokuapp.com/all").readText()
+                if (apiRspAll.isNotEmpty()) {
+                    File(this@MainActivity.filesDir, "all.json").writeText(apiRspAll)
+                }
+
             }
 
         } else {
 
-            if (File(this@MainActivity.filesDir, "data.json").exists()) {
-                apiResponse = File(this@MainActivity.filesDir, "data.json").readText()
+            if (File(this@MainActivity.filesDir, "all.json").exists()) {
+                apiRspAll = File(this@MainActivity.filesDir, "all.json").readText()
+            } else {
+                return false
+            }
+
+            if (File(this@MainActivity.filesDir, "countries.json").exists()) {
+                apiRspCountries = File(this@MainActivity.filesDir, "countries.json").readText()
             } else {
                 return false
             }
