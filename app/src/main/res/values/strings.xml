@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">COVID-19</string>
+    <string name="txNewDeath">Новые смерти</string>
+    <string name="txDeathPerCases">Смертность на человека</string>
+    <string name="txDeath">Смертей</string>
+    <string name="txCrit">В критичном</string>
+    <string name="txActive">Зараженные</string>
+    <string name="txRecover">Выздоровели</string>
+    <string name="txNewCases">Новые случаи</string>
+    <string name="txCases">Случаи</string>
+    <string name="txCountry">Страна</string>
 </resources>

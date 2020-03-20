@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // разбивем данные на json объекты
-
+m
     }
 
     private fun checkAndSaveData(): Boolean {
