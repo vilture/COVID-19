@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Gradle: moe.banana:moshi-jsonapi:3.5.0@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/moe.banana/moshi-jsonapi/3.5.0/a5eb4e62b1e05d63bcc8ff3cef14901d3057589b/moshi-jsonapi-3.5.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/moe.banana/moshi-jsonapi/3.5.0/af40b063a38f903c8be7a97d5d2281a36c79eea1/moshi-jsonapi-3.5.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/moe.banana/moshi-jsonapi/3.5.0/dcc52874c6dbac05ae695536a5b665257e43a768/moshi-jsonapi-3.5.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
