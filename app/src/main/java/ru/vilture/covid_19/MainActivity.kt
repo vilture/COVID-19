@@ -1,5 +1,6 @@
 package ru.vilture.covid_19
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Bundle
@@ -19,12 +20,16 @@ import java.io.File
 import java.io.IOException
 import java.math.RoundingMode
 import java.net.URL
+import java.sql.Date
+import java.text.SimpleDateFormat
+import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity() {
 
     var apiRspCountry = ""
     var apiRspAll = ""
+    var loadDate = ""
 
     data class dataAll(
         @SerializedName("cases") val cases: String,
@@ -52,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         var ok = false
 
-        // check internet state and load json data
+        // проверим доступность интернета и загрузим данные
         Snackbar.make(main, "Попытка загрузить статистику", Snackbar.LENGTH_INDEFINITE)
             .show()
 
@@ -60,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             ok = checkAndSaveData()
         }
 
-        //Thread.sleep(200)
+        Thread.sleep(200)
 
         //заполним список данных по странам
         val collectionType =
@@ -90,7 +95,8 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        Snackbar.make(main, "Статистика загружена", Snackbar.LENGTH_SHORT).show()
+
+        Snackbar.make(main, "Статистика загружена $loadDate", Snackbar.LENGTH_SHORT).show()
     }
 
     private fun changeDataCountry(selCountry: String) {
@@ -105,6 +111,9 @@ class MainActivity : AppCompatActivity() {
             cases.text = dataAll.cases
             death.text = dataAll.deaths
             recover.text = dataAll.recovered
+            newCases.text = "0"
+            active.text = "0"
+            crit.text = "0"
             dpc = (dataAll.cases).toFloat() / (dataAll.deaths).toFloat()
 
             deathPerCases.text = dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
@@ -123,7 +132,8 @@ class MainActivity : AppCompatActivity() {
                     if (!dpc.isInfinite())
                         deathPerCases.text =
                             dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
-
+                    else
+                        deathPerCases.text = "0.00"
                     break
                 }
             }
@@ -161,6 +171,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun checkAndSaveData(): Boolean {
         doAsync {
             if (isOnline()) {
@@ -184,6 +195,10 @@ class MainActivity : AppCompatActivity() {
                 if (File(this@MainActivity.filesDir, "countries.json").exists()) {
                     apiRspCountry = File(this@MainActivity.filesDir, "countries.json").readText()
                 }
+
+                val oldDate =
+                    Date(File(this@MainActivity.filesDir, "countries.json").lastModified())
+                loadDate = SimpleDateFormat("dd.MM.yyyy HH:mm").format(oldDate)
             }
         }
 
@@ -206,5 +221,9 @@ class MainActivity : AppCompatActivity() {
         const val WTEXT = "Мировая статистика"
     }
 
-
+    override fun onBackPressed() {
+        moveTaskToBack(true)
+        android.os.Process.killProcess(android.os.Process.myPid())
+        exitProcess(1)
+    }
 }
