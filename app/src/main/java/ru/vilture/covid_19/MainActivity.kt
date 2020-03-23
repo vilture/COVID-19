@@ -1,14 +1,17 @@
 package ru.vilture.covid_19
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.doAsync
 import java.io.File
 import java.io.IOException
+import java.math.RoundingMode
 import java.net.URL
 
 
@@ -18,21 +21,21 @@ class MainActivity : AppCompatActivity() {
     var apiRspAll = ""
 
     data class dataAll(
-        val cases: String,
-        val deaths: String,
-        val recovered: String
+        @SerializedName("cases") val cases: String,
+        @SerializedName("deaths") val deaths: String,
+        @SerializedName("recovered") val recovered: String
     )
 
     data class dataCountry(
-        val country: String,
-        val cases: String,
-        val todayCases: String,
-        val deaths: String,
-        val todayDeaths: String,
-        val recovered: String,
-        val active: String,
-        val critical: String,
-        val casesPerOneMillion: String
+        @SerializedName("country") val country: String,
+        @SerializedName("cases") val cases: String,
+        @SerializedName("todayCases") val todayCases: String,
+        @SerializedName("deaths") val deaths: String,
+        @SerializedName("todayDeaths") val todayDeaths: String,
+        @SerializedName("recovered") val recovered: String,
+        @SerializedName("active") val active: String,
+        @SerializedName("critical") val critical: String,
+        @SerializedName("casesPerOneMillion") val casesPerOneMillion: String
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,40 +45,47 @@ class MainActivity : AppCompatActivity() {
         var ok = false
 
         // check internet state and load json data
-        doAsync {
-            Snackbar.make(main, "Попытка загрузить статистику", Snackbar.LENGTH_INDEFINITE)
-                .show()
+        Snackbar.make(main, "Попытка загрузить статистику", Snackbar.LENGTH_INDEFINITE)
+            .show()
 
-            while (!ok) {
-                ok = checkAndSaveData()
-            }
-            Snackbar.make(main, "Статистика загружена", Snackbar.LENGTH_SHORT).show()
+        while (!ok) {
+            ok = checkAndSaveData()
         }
 
+        viewDataAll()
+        Snackbar.make(main, "Статистика загружена", Snackbar.LENGTH_SHORT).show()
+    }
+
+
+    private fun viewDataAll() {
         // разбивем мировые данные на json объекты
         val dataAll = parseJsonAll()
 
         // покажем мировую статистику
+        val dpc: Float
         country.text = "мировая статистика"
         cases.text = dataAll.cases
         death.text = dataAll.deaths
         recover.text = dataAll.recovered
+        dpc = (dataAll.cases).toFloat() / (dataAll.deaths).toFloat()
+
+        deathPerCases.text = dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
     }
 
     private fun parseJsonAll(): dataAll {
-        val moshi = Moshi.Builder().build()
-        val jsonAdapter: JsonAdapter<dataAll> =
-            moshi.adapter<dataAll>(dataAll::class.java)
-
-        val tt: dataAll = jsonAdapter.fromJson(apiRspAll)
-
-        return tt
+        return try {
+            val gson = GsonBuilder().serializeNulls().create()
+            gson.fromJson(apiRspAll,dataAll::class.java)
+        } catch (e: Exception) {
+            println(e.message.toString())
+            dataAll("-1", "-1", "-1")
+        }
     }
 
     private fun checkAndSaveData(): Boolean {
-        if (isOnline()) {
-            // internet available
-            doAsync {
+        doAsync {
+            if (isOnline()) {
+                // internet available
                 apiRspCountries =
                     URL("https://coronavirus-19-api.herokuapp.com/countries").readText()
                 if (apiRspCountries.isNotEmpty()) {
@@ -86,37 +96,44 @@ class MainActivity : AppCompatActivity() {
                 if (apiRspAll.isNotEmpty()) {
                     File(this@MainActivity.filesDir, "all.json").writeText(apiRspAll)
                 }
-
-            }
-
-        } else {
-
-            if (File(this@MainActivity.filesDir, "all.json").exists()) {
-                apiRspAll = File(this@MainActivity.filesDir, "all.json").readText()
             } else {
-                return false
-            }
 
-            if (File(this@MainActivity.filesDir, "countries.json").exists()) {
-                apiRspCountries = File(this@MainActivity.filesDir, "countries.json").readText()
-            } else {
-                return false
+                if (File(this@MainActivity.filesDir, "all.json").exists()) {
+                    apiRspAll = File(this@MainActivity.filesDir, "all.json").readText()
+                }
+
+                if (File(this@MainActivity.filesDir, "countries.json").exists()) {
+                    apiRspCountries = File(this@MainActivity.filesDir, "countries.json").readText()
+                }
             }
         }
-        return true
+
+        return !(apiRspAll.isEmpty() and apiRspCountries.isEmpty())
     }
 
     private fun isOnline(): Boolean {
-        val runtime = Runtime.getRuntime()
+//        val runtime = Runtime.getRuntime()
+//        try {
+//            val ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8")
+//            val exitValue = ipProcess.waitFor()
+//            return exitValue == 0
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        } catch (e: InterruptedException) {
+//            e.printStackTrace()
+//        }
+//        return false
+
         try {
-            val ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8")
-            val exitValue = ipProcess.waitFor()
-            return exitValue == 0
+            val cm =
+                this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val netInfo = cm.activeNetworkInfo
+            return netInfo != null && netInfo.isConnectedOrConnecting
         } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: InterruptedException) {
             e.printStackTrace()
         }
         return false
     }
+
+
 }
