@@ -112,6 +112,7 @@ class MainActivity : AppCompatActivity() {
             death.text = dataAll.deaths
             recover.text = dataAll.recovered
             newCases.text = "0"
+            newDeath.text = "0"
             active.text = "0"
             crit.text = "0"
             dpc = (dataAll.cases).toFloat() / (dataAll.deaths).toFloat()
