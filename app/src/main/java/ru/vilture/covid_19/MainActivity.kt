@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -28,17 +30,17 @@ import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity() {
 
-    var apiRspCountry = ""
-    var apiRspAll = ""
-    var loadDate = ""
+    private var apiRspCountry = ""
+    private var apiRspAll = ""
+    private var loadDate = ""
 
-    data class dataAll(
+    data class DataAll(
         @SerializedName("cases") val cases: String,
         @SerializedName("deaths") val deaths: String,
         @SerializedName("recovered") val recovered: String
     )
 
-    data class dataCountry(
+    data class DataCountry(
         @SerializedName("country") val country: String,
         @SerializedName("cases") val cases: String,
         @SerializedName("todayCases") val todayCases: String,
@@ -50,9 +52,8 @@ class MainActivity : AppCompatActivity() {
         @SerializedName("casesPerOneMillion") val casesPerOneMillion: String
     )
 
-    private var responceCountry: List<dataCountry> = listOf()
+    private var responceCountry: List<DataCountry> = listOf()
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -92,6 +93,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @SuppressLint("SetJavaScriptEnabled")
     private fun getData() {
         var ok = false
 
@@ -99,29 +101,45 @@ class MainActivity : AppCompatActivity() {
             ok = checkAndSaveData()
         }
 
-        Thread.sleep(200)
+        Thread.sleep(150)
 
         //заполним список данных по странам
         val collectionType =
-            object : TypeToken<List<dataCountry?>?>() {}.type
+            object : TypeToken<List<DataCountry?>?>() {}.type
 
         responceCountry = Gson().fromJson(
             apiRspCountry,
             collectionType
-        ) as List<dataCountry>
+        ) as List<DataCountry>
 
         // заполним список стран
         collectCountry()
 
         // грузим карту
+        webMap.settings.javaScriptEnabled = true
         webMap.settings.loadWithOverviewMode = true
         webMap.settings.useWideViewPort = true
         webMap.setBackgroundColor(Color.WHITE)
         webMap.clearCache(true)
-        webMap.loadUrl("https://www.cdc.gov/coronavirus/2019-ncov/images/outbreak-coronavirus-world.png")
+
+        webMap.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                webMap.loadUrl(
+                    "javascript:(function() { " +
+                            "document.getElementById('header-wrapper').style.display='none'; " +
+                            "document.getElementsByClassName('card_inner_title')[0].style.display='none'; " +
+                            "document.getElementsByClassName('card card-a table_card')[0].style.display='none'; " +
+                            "document.getElementsByClassName('card card-b ')[0].style.display='none'; " +
+                            "document.getElementsByClassName('footer')[0].style.display='none'; " + "})()"
+                )
+            }
+        }
+
+        webMap.loadUrl("https://google.org/crisisresponse/covid19-map")
     }
 
 
+    @SuppressLint("SetTextI18n")
     private fun changeDataCountry(selCountry: String) {
 
         if (selCountry == WTEXT) {
@@ -160,6 +178,7 @@ class MainActivity : AppCompatActivity() {
                         deathPerCases.text = "0.00"
                     break
                 }
+
             }
         }
     }
@@ -185,13 +204,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun parseJsonAll(): dataAll {
+    private fun parseJsonAll(): DataAll {
         return try {
             val gson = GsonBuilder().serializeNulls().create()
-            gson.fromJson(apiRspAll, dataAll::class.java)
+            gson.fromJson(apiRspAll, DataAll::class.java)
         } catch (e: Exception) {
             Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
-            dataAll("-1", "-1", "-1")
+            DataAll("-1", "-1", "-1")
         }
     }
 
@@ -210,6 +229,7 @@ class MainActivity : AppCompatActivity() {
                 if (apiRspAll.isNotEmpty()) {
                     File(this@MainActivity.filesDir, "all.json").writeText(apiRspAll)
                 }
+
             } else {
 
                 if (File(this@MainActivity.filesDir, "all.json").exists()) {
@@ -249,4 +269,5 @@ class MainActivity : AppCompatActivity() {
         android.os.Process.killProcess(android.os.Process.myPid())
         exitProcess(1)
     }
+
 }
