@@ -2,6 +2,7 @@ package ru.vilture.covid_19
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Bundle
@@ -92,6 +93,13 @@ class MainActivity : AppCompatActivity() {
             swipeRefreshLayout.isRefreshing = false
             Snackbar.make(main, "Статистика обновлена", Snackbar.LENGTH_SHORT).show()
         }
+
+
+        // переход на карту регионов России
+        rusBtn.setOnClickListener{
+            val intent = Intent(this@MainActivity, Russia::class.java)
+            startActivity(intent)
+        }
     }
 
 
@@ -113,6 +121,8 @@ class MainActivity : AppCompatActivity() {
             apiRspCountry,
             collectionType
         ) as List<DataCountry>
+
+        rusBtn.visibility = View.GONE
 
         // заполним список стран
         collectCountry()
@@ -161,6 +171,8 @@ class MainActivity : AppCompatActivity() {
             dpc = (dataAll.cases).toFloat() / (dataAll.deaths).toFloat()
 
             deathPerCases.text = dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
+
+            rusBtn.visibility = View.GONE
         } else {
             for (list in responceCountry) {
                 if (list.country == selCountry) {
@@ -178,6 +190,12 @@ class MainActivity : AppCompatActivity() {
                             dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
                     else
                         deathPerCases.text = "0.00"
+
+                    if (selCountry == "Russia")
+                        rusBtn.visibility = View.VISIBLE
+                    else
+                        rusBtn.visibility = View.GONE
+
                     break
                 }
 

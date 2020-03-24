@@ -9,4 +9,5 @@
     <string name="txNewCases">Новые случаи</string>
     <string name="txCases">Случаи</string>
     <string name="txCountry">Страна</string>
+    <string name="regions">Регионы </string>
 </resources>
