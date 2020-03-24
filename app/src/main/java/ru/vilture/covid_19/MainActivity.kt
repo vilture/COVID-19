@@ -2,6 +2,7 @@ package ru.vilture.covid_19
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.View
@@ -49,17 +50,50 @@ class MainActivity : AppCompatActivity() {
         @SerializedName("casesPerOneMillion") val casesPerOneMillion: String
     )
 
-    var responceCountry: List<dataCountry> = listOf()
+    private var responceCountry: List<dataCountry> = listOf()
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var ok = false
-
         // проверим доступность интернета и загрузим данные
         Snackbar.make(main, "Попытка загрузить статистику", Snackbar.LENGTH_INDEFINITE)
             .show()
+
+        // собираем все данные
+        getData()
+
+        // отобразим данные страны в зависимости от подброса
+        select_country.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val selCountry = select_country.selectedItem.toString()
+                changeDataCountry(selCountry)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+
+        Snackbar.make(main, "Статистика загружена $loadDate", Snackbar.LENGTH_SHORT).show()
+
+        // свайп для обновления данных
+        swipeRefreshLayout.setOnRefreshListener {
+            getData()
+
+            swipeRefreshLayout.isRefreshing = false
+            Snackbar.make(main, "Статистика обновлена", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun getData() {
+        var ok = false
 
         while (!ok) {
             ok = checkAndSaveData()
@@ -79,25 +113,14 @@ class MainActivity : AppCompatActivity() {
         // заполним список стран
         collectCountry()
 
-
-        // отобразим данные страны в зависимости от подброса
-        select_country.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                val selCountry = select_country.selectedItem.toString()
-                changeDataCountry(selCountry)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-
-        Snackbar.make(main, "Статистика загружена $loadDate", Snackbar.LENGTH_SHORT).show()
+        // грузим карту
+        webMap.settings.loadWithOverviewMode = true
+        webMap.settings.useWideViewPort = true
+        webMap.setBackgroundColor(Color.WHITE)
+        webMap.clearCache(true)
+        webMap.loadUrl("https://www.cdc.gov/coronavirus/2019-ncov/images/outbreak-coronavirus-world.png")
     }
+
 
     private fun changeDataCountry(selCountry: String) {
 
@@ -111,10 +134,10 @@ class MainActivity : AppCompatActivity() {
             cases.text = dataAll.cases
             death.text = dataAll.deaths
             recover.text = dataAll.recovered
-            newCases.text = "0"
-            newDeath.text = "0"
-            active.text = "0"
-            crit.text = "0"
+            newCases.text = "-"
+            newDeath.text = "-"
+            active.text = "-"
+            crit.text = "-"
             dpc = (dataAll.cases).toFloat() / (dataAll.deaths).toFloat()
 
             deathPerCases.text = dpc.toBigDecimal().setScale(2, RoundingMode.UP).toPlainString()
@@ -202,7 +225,6 @@ class MainActivity : AppCompatActivity() {
                 loadDate = SimpleDateFormat("dd.MM.yyyy HH:mm").format(oldDate)
             }
         }
-
         return !(apiRspAll.isEmpty() and apiRspCountry.isEmpty())
     }
 
