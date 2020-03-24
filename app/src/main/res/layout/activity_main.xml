@@ -68,6 +68,28 @@
                 app:layout_constraintTop_toBottomOf="@+id/txCases" />
 
             <TextView
+                android:id="@+id/txDeath"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/txDeath"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txNewCases" />
+
+            <TextView
+                android:id="@+id/txNewDeath"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/txNewDeath"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txDeath" />
+
+            <TextView
                 android:id="@+id/txRecover"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -99,28 +121,6 @@
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/txActive" />
-
-            <TextView
-                android:id="@+id/txDeath"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/txDeath"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/txNewCases" />
-
-            <TextView
-                android:id="@+id/txNewDeath"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:text="@string/txNewDeath"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/txDeath" />
 
             <TextView
                 android:id="@+id/txDeathPerCases"
